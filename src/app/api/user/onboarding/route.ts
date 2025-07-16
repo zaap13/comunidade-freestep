@@ -1,10 +1,10 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { auth } from "@/../auth";
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function PUT(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
+
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Não autorizado" }, { status: 401 });
   }
@@ -23,6 +23,7 @@ export async function PUT(request: Request) {
     const existingUser = await prisma.user.findUnique({
       where: { nick },
     });
+
     if (existingUser) {
       return NextResponse.json(
         { message: "Este nick já está em uso. Tente outro." },
@@ -40,10 +41,6 @@ export async function PUT(request: Request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Erro ao atualizar perfil:", error);
-    return NextResponse.json(
-      { message: "Erro interno do servidor." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: error }, { status: 500 });
   }
 }

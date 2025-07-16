@@ -1,10 +1,18 @@
 'use client'
 
 import { useSession, signIn, signOut } from "next-auth/react"
-import { Button } from "@/components/ui/Button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/Dropdown"
-import { Avatar } from "@/components/ui/Avatar"
+import { Button } from "@/components/ui/button"
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LogIn, LogOut, User as UserIcon } from "lucide-react"
+import Link from "next/link"
 
 export function AuthButton() {
   const { data: session, status } = useSession()
@@ -13,33 +21,39 @@ export function AuthButton() {
     return <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
   }
 
-  if (session) {
+  if (session?.user) {
+    const displayName = session.user.nick || session.user.name;
+    const fallbackLetter = displayName?.charAt(0).toUpperCase() || "U";
+
     return (
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Avatar
-            src={session.user?.image}
-            alt={session.user?.name}
-            fallback={session.user?.name?.charAt(0).toUpperCase() ?? 'U'}
-          />
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={session.user.image ?? undefined} alt={displayName ?? "Avatar"} />
+              <AvatarFallback>{fallbackLetter}</AvatarFallback>
+            </Avatar>
+          </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" >
+        <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{session.user.name}</p>
-              <p className="text-xs leading-none text-muted-foreground">{session.user.email}</p>
+              <p className="text-sm font-medium leading-none">{displayName}</p>
+              <p className="text-xs leading-none text-muted-foreground">
+                {session.user.email}
+              </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <div className="flex items-center">
+          <DropdownMenuItem asChild>
+            <Link href="/profile" className="flex items-center w-full cursor-pointer">
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Perfil</span>
-            </div>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => signOut()}>
-            <div className="flex items-center">
+          <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
+             <div className="flex items-center">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Sair</span>
             </div>

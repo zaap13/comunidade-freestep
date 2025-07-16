@@ -1,20 +1,31 @@
 import RadioPlayer from "@/components/RadioPlayer";
+import Chat from "@/components/Chat";
+import DanceFloor from "@/components/DanceFloor";
 
 export default function Home() {
   return (
-    <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
-      {/* DJ Booth com o Player da Rádio */}
-      <div className="text-center p-8 border border-dashed border-primary/50 rounded-lg shadow-[var(--shadow-glow-primary)] flex justify-center">
-        <RadioPlayer />
-      </div>
+    // Usaremos uma grade que no mobile é 1 coluna, e em telas médias (md) vira 3 colunas
+    <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4 py-8">
 
-      {/* Pista de Dança */}
-      <div className="mt-8 text-center p-16 border border-dashed border-secondary/50 rounded-lg min-h-[400px] shadow-[var(--shadow-glow-secondary)]">
-        <h2 className="text-2xl font-bold text-secondary">Pista de Dança</h2>
-        <p className="text-muted-foreground">Em breve: A festa com os avatares dos usuários...</p>
-      </div>
-      
-    </section>
+      {/* Conteúdo Principal (Ocupa 2 de 3 colunas no desktop) */}
+      <main className="md:col-span-2 flex flex-col gap-8">
+
+        {/* DJ Booth */}
+        <div className="text-center p-8 border border-dashed border-primary/50 rounded-lg flex justify-center items-center">
+          <RadioPlayer />
+        </div>
+
+        <div className="relative mt-8 text-center p-8 md:p-16 border border-dashed border-secondary/50 rounded-lg min-h-[500px] shadow-[var(--shadow-glow-secondary)]">
+          <DanceFloor />
+        </div>
+
+      </main>
+
+      {/* Sidebar do Chat (Ocupa 1 de 3 colunas no desktop) */}
+      <aside className="hidden md:flex md:col-span-1">
+        <Chat />
+      </aside>
+
+    </div>
   );
 }
