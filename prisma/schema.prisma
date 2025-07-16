@@ -10,18 +10,19 @@ datasource db {
 
 model User {
   id            String    @id @default(cuid())
-  nick          String    @unique // O nick do dançarino, agora único e obrigatório
+  name          String?
+  nick          String?   @unique
   email         String?   @unique
   emailVerified DateTime?
-  image         String? // URL da imagem de perfil (do Vercel Blob ou do provedor de login)
-  bio           String?   @db.Text // Um campo de texto mais longo para a biografia
+  image         String?
+  bio           String?   @db.Text
   instagram     String?
   youtube       String?
   tiktok        String?
   website       String?
 
-  role       String  @default("user") // "user", "moderator", "admin"
-  isVerified Boolean @default(false) // O selo de "verificado"
+  role       String  @default("user")
+  isVerified Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -41,7 +42,6 @@ model Music {
   status    String   @default("pending") // "pending", "approved", "rejected"
   createdAt DateTime @default(now())
 
-  // Relação com o usuário que enviou
   submittedBy   User   @relation("SubmittedBy", fields: [submittedById], references: [id])
   submittedById String
 }
