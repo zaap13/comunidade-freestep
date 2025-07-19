@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Ably from 'ably'
+import ablyClient from '@/lib/ably' // 1. Importa nosso cliente central
 import { useSession } from 'next-auth/react'
 import type { PresenceMessage } from 'ably'
 
@@ -20,43 +20,36 @@ export function useDanceFloor() {
   const [onlineUsers, setOnlineUsers] = useState<Member[]>([]);
 
   useEffect(() => {
-    // Só executa quando a sessão estiver definida (logado ou deslogado)
-    if (status === 'loading') return;
+    if (status === 'loading') {
+      return;
+    }
+    
+    // 2. Usa o cliente importado diretamente
+    const channel = ablyClient.channels.get('dance-floor:presence');
 
-    const ablyClient = new Ably.Realtime({ authUrl: '/api/ably/auth' });
+    const onPresenceUpdate = async () => {
+      const members = await channel.presence.get();
+      setOnlineUsers(members as Member[]);
+    };
 
-    ablyClient.connection.on('connected', async () => {
-      const channel = ablyClient.channels.get('dance-floor:presence');
-
-      // Pega a lista inicial de membros
-      const initialMembers = await channel.presence.get();
-      setOnlineUsers(initialMembers as Member[]);
-      
-      // Se inscreve nos eventos de entrada e saída
-      channel.presence.subscribe(['enter', 'leave'], (memberMessage) => {
-        setOnlineUsers(prev => {
-          if (memberMessage.action === 'leave') {
-            // Remove o membro que saiu
-            return prev.filter(m => m.clientId !== memberMessage.clientId);
-          } else {
-            // Adiciona o novo membro (prevenindo duplicatas)
-            const others = prev.filter(m => m.clientId !== memberMessage.clientId);
-            return [...others, memberMessage as Member];
-          }
-        });
-      });
-
-      // Entra no canal com os dados do usuário atual (logado ou anônimo)
+    const enterChannel = () => {
       const userData: UserInfo = {
         name: session?.user?.name || `Anônimo`,
         image: session?.user?.image || null,
-        nick: session?.user?.nick || null,
+        nick: session?.user?.nick || `Anônimo#${Math.random().toString(36).substring(2, 6)}`,
       };
       channel.presence.enter(userData);
+    };
+
+    ablyClient.connection.on('connected', () => {
+      enterChannel();
+      channel.presence.subscribe(['present', 'enter', 'leave'], onPresenceUpdate);
+      onPresenceUpdate();
     });
 
+    // 3. A limpeza agora é mais simples, pois não fechamos a conexão global aqui
     return () => {
-      ablyClient.close();
+      channel.presence.unsubscribe();
     };
   }, [status, session]);
 

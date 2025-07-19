@@ -1,9 +1,10 @@
 import { auth } from './auth';
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export async function middleware(request: Request) {
+export async function middleware(request: NextRequest) {
   const session = await auth();
-  const { pathname } = new URL(request.url);
+  const { pathname } = request.nextUrl;
 
   const userIsAuthenticated = !!session?.user;
   const userNeedsOnboarding = userIsAuthenticated && !session.user.nick;
@@ -21,5 +22,5 @@ export async function middleware(request: Request) {
 }
 
 export const config = {
-  matcher: ['/', '/onboarding', '/profile/:path*'], // Rotas onde o middleware vai rodar
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
